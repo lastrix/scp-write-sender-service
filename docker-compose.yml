@@ -1,0 +1,41 @@
+---
+version: '3'
+
+
+services:
+  scp-zookeeper:
+    image: confluentinc/cp-zookeeper:5.5.0
+    hostname: scp-zookeeper
+    container_name: scp-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  scp-broker:
+    image: confluentinc/cp-kafka:5.5.0
+    hostname: scp-broker
+    container_name: scp-broker
+    depends_on:
+      - scp-zookeeper
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'scp-zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://scp-broker:9092,PLAINTEXT_HOST://127.0.0.1:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  scp-postgres:
+    image: library/postgres:12.3-alpine
+    hostname: scp-postgres
+    container_name: scp-postgres
+    environment:
+      POSTGRES_DB: test_db
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test2020
+    ports:
+      - 15432:5432

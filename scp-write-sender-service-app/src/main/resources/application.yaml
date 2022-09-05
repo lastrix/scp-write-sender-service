@@ -1,0 +1,32 @@
+########## Framework related configuration goes here ################
+spring:
+  profiles:
+    active: 'prod'
+  application:
+    name: 'scp-write-sender-service'
+  datasource:
+    driver-class-name: 'org.postgresql.Driver'
+    url: "${SCP_WRITE_SENDER_SERVICE_DB_URL}"
+    username: "${SCP_WRITE_SENDER_SERVICE_DB_USERNAME}"
+    password: "${SCP_WRITE_SENDER_SERVICE_DB_PASSWORD}"
+
+server:
+  servlet:
+    encoding:
+      charset: 'UTF-8'
+      force-response: 'true'
+
+########## Application related configuration goes here ##############
+
+scp:
+  kafka:
+    url: "localhost:29092"
+  writesender:
+    worker:
+      channels:
+        start: "${SCP_WRITE_SENDER_SERVICE_CHANNEL_START:0}"
+        end: "${SCP_WRITE_SENDER_SERVICE_CHANNEL_END:7}"
+        mask: "${SCP_WRITE_SENDER_SERVICE_CHANNEL_MASK:7}"
+
+
+
