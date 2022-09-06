@@ -2,7 +2,6 @@ package com.lastrix.scp.writesender.dao;
 
 import com.lastrix.scp.writesender.model.EnrolleeSelect;
 
-import java.time.Instant;
 import java.util.List;
 
 public interface EnrolleeDao {

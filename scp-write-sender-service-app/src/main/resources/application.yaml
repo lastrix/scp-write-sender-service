@@ -5,14 +5,18 @@ spring:
   application:
     name: 'scp-write-sender-service'
   datasource:
+    # right now we work only with PostgreSQL so no reason to add
+    # env variable usage
     driver-class-name: 'org.postgresql.Driver'
-    url: "${SCP_WRITE_SENDER_SERVICE_DB_URL}"
-    username: "${SCP_WRITE_SENDER_SERVICE_DB_USERNAME}"
-    password: "${SCP_WRITE_SENDER_SERVICE_DB_PASSWORD}"
+    url: "${SCP_WSS_DB_URL}"
+    username: "${SCP_WSS_DB_USERNAME}"
+    password: "${SCP_WSS_DB_PASSWORD}"
+# no liquibase configuration here, this work performed by write service
 
 server:
   servlet:
     encoding:
+      # enforce unicode encoding
       charset: 'UTF-8'
       force-response: 'true'
 
@@ -20,13 +24,15 @@ server:
 
 scp:
   kafka:
-    url: "localhost:29092"
-  writesender:
+    url: "${SCP_WSS_KAFKA_URL:localhost:29092}"
+    topic-template: "${SCP_WSS_KAFKA_TOPIC_TEMPLATE:select-direct-}"
+  wss:
     worker:
       channels:
-        start: "${SCP_WRITE_SENDER_SERVICE_CHANNEL_START:0}"
-        end: "${SCP_WRITE_SENDER_SERVICE_CHANNEL_END:7}"
-        mask: "${SCP_WRITE_SENDER_SERVICE_CHANNEL_MASK:7}"
-
-
+        start: "${SCP_WSS_CHANNEL_START:0}"
+        end: "${SCP_WSS_CHANNEL_END:7}"
+        mask: "${SCP_WSS_CHANNEL_MASK:7}"
+        count: "${SCP_WSS_CHANNEL_COUNT:8}"
+      parallelism: "${SCP_WSS_WORKER_PARALLELISM:4}"
+      max-processing-chunk: "${SCP_WSS_WORKER_MAX_PROCESSING_CHUNK:1024}"
 

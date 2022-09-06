@@ -19,9 +19,9 @@ import java.util.Map;
 public class KafkaCfg {
     private static final int ONE_KB = 1024;
     private static final int ONE_MB = 1024 * ONE_KB;
-    @Value("${scp.kafka.url:null}")
+    @Value("${scp.kafka.url}")
     private String kafkaURL;
-    @Value("${scp.writesend.kafka.topic-template:select-direct-}")
+    @Value("${scp.kafka.topic-template}")
     private String topicTemplate;
 
     @Bean

@@ -23,12 +23,12 @@ public class DefaultChangeSenderService extends ChangeSenderService<EnrolleeSele
     public DefaultChangeSenderService(
             ChangeSourceService<EnrolleeSelect> source,
             ChangeSender<EnrolleeSelect> sender,
-            @Value("${scp.writesender.worker.parallelism:4}") int parallelism,
-            @Value("${scp.writesender.worker.channels:8}") int channels,
-            @Value("${scp.writesender.worker.max-processing-chunk:1024}") int maxProcessingChunk,
-            @Value("${scp.writesender.worker.channels.start}") int channelStart,
-            @Value("${scp.writesender.worker.channels.end}") int channelEnd,
-            @Value("${scp.writesender.worker.channels.mask}") int channelMask) {
+            @Value("${scp.wss.worker.parallelism}") int parallelism,
+            @Value("${scp.wss.worker.channels.count}") int channels,
+            @Value("${scp.wss.worker.max-processing-chunk}") int maxProcessingChunk,
+            @Value("${scp.wss.worker.channels.start}") int channelStart,
+            @Value("${scp.wss.worker.channels.end}") int channelEnd,
+            @Value("${scp.wss.worker.channels.mask}") int channelMask) {
         super(source, sender, parallelism, channels, maxProcessingChunk);
         this.channelStart = channelStart;
         this.channelEnd = channelEnd;
@@ -44,6 +44,8 @@ public class DefaultChangeSenderService extends ChangeSenderService<EnrolleeSele
     protected int channelOf(EnrolleeSelect o) {
         var channel = (int) o.getSpecId().getLeastSignificantBits() & channelMask;
         if (channel < channelStart || channel >= channelEnd) {
+            // we should not throw errors here, just warn log that something bad happens with database
+            // or our configuration
             log.warn("Wrong channel usage detected in database for {}:{}:{}", o.getUserId(), o.getSessionId(), o.getSpecId());
         }
         return channel;

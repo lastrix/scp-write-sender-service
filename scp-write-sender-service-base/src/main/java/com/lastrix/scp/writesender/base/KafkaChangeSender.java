@@ -39,6 +39,9 @@ public class KafkaChangeSender<T> implements ChangeSender<T> {
                         return false;
                     });
         }
+        // actually this may lock thread for much longer than
+        // we would think because kafka may send messages only
+        // when certain amount of bytes could be sent to server
         awaitLatch(latch);
         return results;
     }
@@ -52,6 +55,8 @@ public class KafkaChangeSender<T> implements ChangeSender<T> {
     }
 
     private void awaitLatch(CountDownLatch latch) {
+        // we should wait till all changes sent to server
+        // it should happen eventually
         while (latch.getCount() > 0) {
             try {
                 if (latch.await(100, TimeUnit.MILLISECONDS)) {

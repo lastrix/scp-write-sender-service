@@ -5,12 +5,9 @@ import com.lastrix.scp.writesender.dao.EnrolleeDao;
 import com.lastrix.scp.writesender.model.EnrolleeSelect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,13 +22,13 @@ public class DefaultChangeSourceService implements ChangeSourceService<EnrolleeS
 
     @Transactional(readOnly = true)
     @Override
-    public List<EnrolleeSelect> getChanges(int page) {
+    public List<EnrolleeSelect> fetch(int page) {
         return dao.fetch(page);
     }
 
     @Transactional
     @Override
-    public void commitChanges(List<EnrolleeSelect> changes) {
+    public void commit(List<EnrolleeSelect> changes) {
         // we may change fewer entries than expected
         // because of modification
         var c = dao.commit(changes);
