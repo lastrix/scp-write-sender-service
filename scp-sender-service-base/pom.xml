@@ -7,9 +7,9 @@
         <artifactId>scp-write-sender-service-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>scp-write-sender-service-base</artifactId>
-    <name>scp-write-sender-service-base</name>
-    <description>Selection Committee Platform Write Sender Service base project for sharing with other projects</description>
+    <artifactId>scp-sender-service-base</artifactId>
+    <name>scp-sender-service-base</name>
+    <description>Selection Committee Platform Sender Service base project for sharing with other projects</description>
     <properties>
         <java.version>17</java.version>
     </properties>

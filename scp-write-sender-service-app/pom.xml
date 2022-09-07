@@ -22,7 +22,7 @@
         </dependency>
         <dependency>
             <groupId>com.lastrix.scp</groupId>
-            <artifactId>scp-write-sender-service-base</artifactId>
+            <artifactId>scp-sender-service-base</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
