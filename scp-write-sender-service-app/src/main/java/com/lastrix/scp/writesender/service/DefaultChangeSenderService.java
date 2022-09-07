@@ -4,13 +4,12 @@ import com.lastrix.scp.sender.ChangeSender;
 import com.lastrix.scp.sender.ChangeSenderService;
 import com.lastrix.scp.sender.ChangeSourceService;
 import com.lastrix.scp.writesender.model.EnrolleeSelect;
+import com.lastrix.scp.writesender.model.EnrolleeSelectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 public class DefaultChangeSenderService extends ChangeSenderService<EnrolleeSelect> {
@@ -37,7 +36,7 @@ public class DefaultChangeSenderService extends ChangeSenderService<EnrolleeSele
 
     @Override
     protected Object idOf(EnrolleeSelect o) {
-        return new EnrolleeSelectId(o);
+        return new EnrolleeSelectId(o.getUserId(), o.getSessionId(), o.getSpecId(), o.getOrdinal());
     }
 
     @Override
@@ -49,39 +48,5 @@ public class DefaultChangeSenderService extends ChangeSenderService<EnrolleeSele
             log.warn("Wrong channel usage detected in database for {}:{}:{}", o.getUserId(), o.getSessionId(), o.getSpecId());
         }
         return channel;
-    }
-
-    private static final class EnrolleeSelectId {
-        private final UUID userId;
-        private final int sessionId;
-        private final UUID specId;
-        private final int ordinal;
-
-        public EnrolleeSelectId(EnrolleeSelect s) {
-            userId = s.getUserId();
-            sessionId = s.getSessionId();
-            specId = s.getSpecId();
-            ordinal = s.getOrdinal();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof EnrolleeSelectId that)) return false;
-
-            if (sessionId != that.sessionId) return false;
-            if (ordinal != that.ordinal) return false;
-            if (!userId.equals(that.userId)) return false;
-            return specId.equals(that.specId);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = userId.hashCode();
-            result = 31 * result + sessionId;
-            result = 31 * result + specId.hashCode();
-            result = 31 * result + ordinal;
-            return result;
-        }
     }
 }

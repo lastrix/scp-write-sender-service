@@ -25,7 +25,10 @@ server:
 scp:
   kafka:
     url: "${SCP_WSS_KAFKA_URL:localhost:29092}"
-    topic-template: "${SCP_WSS_KAFKA_TOPIC_TEMPLATE:select-direct-}"
+    topics:
+      confirm: "${SCP_WSS_KAFKA_TOPICS_CONFIRM:select-indirect-0}"
+      direct:
+        template: "${SCP_WSS_KAFKA_TOPIC_TEMPLATE:select-direct-}"
   wss:
     worker:
       channels:
@@ -35,4 +38,8 @@ scp:
         count: "${SCP_WSS_CHANNEL_COUNT:8}"
       parallelism: "${SCP_WSS_WORKER_PARALLELISM:4}"
       max-processing-chunk: "${SCP_WSS_WORKER_MAX_PROCESSING_CHUNK:1024}"
+    confirm:
+      chunk-size: "${SCP_WSS_CONFIRM_CHUNK_SIZE:32}"
+      max-chunk-size: "${SCP_WSS_CONFIRM_MAX_CHUNK_SIZE:64}"
+      receive-buffer-size: "${SCP_WSS_CONFIRM_RECEIVE_BUFFER_SIZE:128}"
 

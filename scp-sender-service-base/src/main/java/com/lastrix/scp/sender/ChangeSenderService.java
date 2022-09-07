@@ -93,9 +93,14 @@ public abstract class ChangeSenderService<T> {
 
     public void doBackground() {
         while (running) {
-            commit();
-            if (running && (shouldNotFetch() || !fetch())) {
-                LockSupport.parkNanos(sleepTime);
+            try {
+                commit();
+                if (running && (shouldNotFetch() || !fetch())) {
+                    LockSupport.parkNanos(sleepTime);
+                }
+            } catch (Throwable e) {
+                log.error("Failed to process", e);
+                LockSupport.parkNanos(Duration.ofSeconds(1).toNanos());
             }
         }
     }

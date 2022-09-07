@@ -21,7 +21,7 @@ public class KafkaCfg {
     private static final int ONE_MB = 1024 * ONE_KB;
     @Value("${scp.kafka.url}")
     private String kafkaURL;
-    @Value("${scp.kafka.topic-template}")
+    @Value("${scp.kafka.topics.direct.template}")
     private String topicTemplate;
 
     @Bean

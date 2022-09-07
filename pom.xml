@@ -21,6 +21,7 @@
 		<module>scp-write-sender-service-model</module>
 		<module>scp-write-sender-service-app</module>
 		<module>scp-sender-service-base</module>
+		<module>scp-receiver-service-base</module>
 	</modules>
 
 	<dependencies>

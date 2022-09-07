@@ -25,6 +25,11 @@
             <artifactId>scp-sender-service-base</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.lastrix.scp</groupId>
+            <artifactId>scp-receiver-service-base</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
 
         <!--	Global Project	-->
         <dependency>

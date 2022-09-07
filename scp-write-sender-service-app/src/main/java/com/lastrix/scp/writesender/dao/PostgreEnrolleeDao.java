@@ -1,6 +1,7 @@
 package com.lastrix.scp.writesender.dao;
 
 import com.lastrix.scp.writesender.model.EnrolleeSelect;
+import com.lastrix.scp.writesender.model.EnrolleeSelectId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -29,11 +30,16 @@ public class PostgreEnrolleeDao implements EnrolleeDao {
                 "UPDATE scp_write_service.enrollee_select SET state = 1, modified_stamp = CURRENT_TIMESTAMP WHERE user_id = ? AND session_id = ? AND spec_id = ? AND ordinal = ?",
                 changes.stream().map(x -> new Object[]{x.getUserId(), x.getSessionId(), x.getSpecId(), x.getOrdinal()}).toList()
         );
-        int t = 0;
-        for (int v : a) {
-            t += v;
-        }
-        return t;
+        return sumArray(a);
+    }
+
+    @Override
+    public int confirm(List<EnrolleeSelectId> list) {
+        int[] a = jdbcTemplate.batchUpdate(
+                "UPDATE scp_write_service.enrollee_select SET state = 2, modified_stamp = CURRENT_TIMESTAMP WHERE user_id = ? AND session_id = ? AND spec_id = ? AND ordinal = ?",
+                list.stream().map(x -> new Object[]{x.getUserId(), x.getSessionId(), x.getSpecId(), x.getOrdinal()}).toList()
+        );
+        return sumArray(a);
     }
 
     @Override
@@ -66,5 +72,13 @@ public class PostgreEnrolleeDao implements EnrolleeDao {
     private Instant toInstantOrNull(ResultSet rs, int columnIndex) throws SQLException {
         Timestamp ts = rs.getTimestamp(columnIndex);
         return ts == null ? null : ts.toInstant();
+    }
+
+    private int sumArray(int[] a) {
+        int t = 0;
+        for (int v : a) {
+            t += v;
+        }
+        return t;
     }
 }
