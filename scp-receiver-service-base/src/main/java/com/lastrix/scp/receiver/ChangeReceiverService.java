@@ -18,9 +18,10 @@ public abstract class ChangeReceiverService<T> {
      * duplicate messages registered in message queues
      */
     private static final int ID_SET_MAX_SIZE = 65535;
-    public static final long NO_RECEIVE_WAIT_DURATION = Duration.ofMillis(200).toNanos();
+    public static final long NO_RECEIVE_WAIT_DURATION = Duration.ofMillis(1000).toNanos();
     public static final Duration RECEIVE_TIMEOUT = Duration.ofSeconds(5);
-    public static final long ONE_SECOND = Duration.ofSeconds(1).toNanos();
+    public static final Duration DURATION_ONE_SECOND = Duration.ofSeconds(1);
+    public static final long ONE_SECOND = DURATION_ONE_SECOND.toNanos();
 
     private final Set<Object> idSet = Collections.newSetFromMap(new LinkedHashMap<>(ID_SET_MAX_SIZE + 1) {
         @Override
@@ -43,7 +44,7 @@ public abstract class ChangeReceiverService<T> {
      */
     private final AtomicReference<Object> commitSlab = new AtomicReference<>(null);
     private final Time time = Time.SYSTEM;
-    private final Timer timer = time.timer(ONE_SECOND);
+    private final Timer timer = time.timer(DURATION_ONE_SECOND);
 
     private volatile boolean running = true;
     private final int sinkChunkSize;
@@ -117,8 +118,9 @@ public abstract class ChangeReceiverService<T> {
     private void doSink() {
         while (running) {
             try {
+                timer.update();
                 if (shouldCommit()) doCommit();
-                else LockSupport.parkNanos(NO_RECEIVE_WAIT_DURATION);
+                LockSupport.parkNanos(NO_RECEIVE_WAIT_DURATION);
             } catch (Throwable e) {
                 log.error("Failed to process", e);
                 LockSupport.parkNanos(ONE_SECOND);
@@ -143,8 +145,9 @@ public abstract class ChangeReceiverService<T> {
         } else {
             sink.commit(list);
             commitSlab.set(slab);
+            messageQueueSize -= list.size();
         }
-        timer.updateAndReset(ONE_SECOND);
+        timer.updateAndReset(DURATION_ONE_SECOND.toMillis());
     }
 
     private boolean shouldCommit() {

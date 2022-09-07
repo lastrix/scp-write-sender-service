@@ -1,7 +1,6 @@
 package com.lastrix.scp.receiver;
 
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
@@ -10,7 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public class KafkaChangeReceiver<T> implements ChangeReceiver<T> {
@@ -22,17 +24,7 @@ public class KafkaChangeReceiver<T> implements ChangeReceiver<T> {
     public KafkaChangeReceiver(Consumer<String, String> consumer, Function<String, T> parser, String topic) {
         this.consumer = consumer;
         this.parser = parser;
-        consumer.subscribe(List.of(topic), new ConsumerRebalanceListener() {
-            @Override
-            public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-
-            }
-
-            @Override
-            public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-
-            }
-        });
+        consumer.subscribe(List.of(topic));
     }
 
     @Override
@@ -41,6 +33,7 @@ public class KafkaChangeReceiver<T> implements ChangeReceiver<T> {
         List<T> changes = new ArrayList<>();
         Map<TopicPartition, OffsetAndMetadata> slab = new HashMap<>();
         while (timer.notExpired() && changes.size() < maxSize) {
+            timer.update();
             var rs = consumer.poll(timer.remainingMs());
             for (ConsumerRecord<String, String> r : rs) {
                 var v = parser.apply(r.value());
