@@ -33,10 +33,10 @@ scp:
     worker:
       channels:
         start: "${SCP_WSS_CHANNEL_START:0}"
-        end: "${SCP_WSS_CHANNEL_END:7}"
-        mask: "${SCP_WSS_CHANNEL_MASK:7}"
-        count: "${SCP_WSS_CHANNEL_COUNT:8}"
-      parallelism: "${SCP_WSS_WORKER_PARALLELISM:4}"
+        end: "${SCP_WSS_CHANNEL_END:1}"
+        mask: "${SCP_WSS_CHANNEL_MASK:0}"
+        count: "${SCP_WSS_CHANNEL_COUNT:1}"
+      parallelism: "${SCP_WSS_WORKER_PARALLELISM:2}"
       max-processing-chunk: "${SCP_WSS_WORKER_MAX_PROCESSING_CHUNK:1024}"
     confirm:
       chunk-size: "${SCP_WSS_CONFIRM_CHUNK_SIZE:32}"
