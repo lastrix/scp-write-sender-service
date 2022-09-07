@@ -13,7 +13,7 @@ public class EnrolleeSelect {
     private UUID userId;
     private int sessionId;
     private UUID specId;
-    private int status;
+    private short status;
     private int score;
     private Instant createdStamp;
     private Instant confirmedStamp;
@@ -26,7 +26,7 @@ public class EnrolleeSelect {
     public EnrolleeSelect() {
     }
 
-    public EnrolleeSelect(UUID userId, int sessionId, UUID specId, int status, int score, Instant createdStamp, Instant confirmedStamp, Instant cancelledStamp, short ordinal) {
+    public EnrolleeSelect(UUID userId, int sessionId, UUID specId, short status, int score, Instant createdStamp, Instant confirmedStamp, Instant cancelledStamp, short ordinal) {
         this.userId = userId;
         this.sessionId = sessionId;
         this.specId = specId;
@@ -62,11 +62,11 @@ public class EnrolleeSelect {
         this.specId = specId;
     }
 
-    public int getStatus() {
+    public short getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(short status) {
         this.status = status;
     }
 

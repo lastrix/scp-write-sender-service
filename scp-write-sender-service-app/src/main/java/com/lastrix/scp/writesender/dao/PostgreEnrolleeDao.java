@@ -54,7 +54,7 @@ public class PostgreEnrolleeDao implements EnrolleeDao {
         r.setUserId(UUID.fromString(rs.getString(1)));
         r.setSessionId(rs.getInt(2));
         r.setSpecId(UUID.fromString(rs.getString(3)));
-        r.setStatus(rs.getInt(4));
+        r.setStatus(rs.getShort(4));
         r.setScore(rs.getInt(5));
         r.setCreatedStamp(toInstantOrNull(rs, 6));
         r.setConfirmedStamp(toInstantOrNull(rs, 7));
