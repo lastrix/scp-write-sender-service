@@ -1,7 +1,7 @@
 package com.lastrix.scp.writesender.cfg;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lastrix.scp.writesender.base.KafkaChangeSender;
+import com.lastrix.scp.sender.KafkaChangeSender;
 import com.lastrix.scp.writesender.model.EnrolleeSelect;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;

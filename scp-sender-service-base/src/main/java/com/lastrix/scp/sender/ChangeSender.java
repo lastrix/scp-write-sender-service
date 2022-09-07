@@ -1,4 +1,4 @@
-package com.lastrix.scp.writesender.base;
+package com.lastrix.scp.sender;
 
 import java.util.List;
 

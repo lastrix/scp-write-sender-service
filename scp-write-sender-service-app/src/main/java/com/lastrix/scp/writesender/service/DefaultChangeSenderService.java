@@ -1,8 +1,8 @@
 package com.lastrix.scp.writesender.service;
 
-import com.lastrix.scp.writesender.base.ChangeSender;
-import com.lastrix.scp.writesender.base.ChangeSenderService;
-import com.lastrix.scp.writesender.base.ChangeSourceService;
+import com.lastrix.scp.sender.ChangeSender;
+import com.lastrix.scp.sender.ChangeSenderService;
+import com.lastrix.scp.sender.ChangeSourceService;
 import com.lastrix.scp.writesender.model.EnrolleeSelect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

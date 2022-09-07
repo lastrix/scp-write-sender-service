@@ -1,4 +1,4 @@
-package com.lastrix.scp.writesender.base;
+package com.lastrix.scp.sender;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
