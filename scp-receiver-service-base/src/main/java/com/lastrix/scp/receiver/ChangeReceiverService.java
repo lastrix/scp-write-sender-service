@@ -152,7 +152,7 @@ public abstract class ChangeReceiverService<T> {
 
     private boolean shouldCommit() {
         synchronized (queue) {
-            return messageQueueSize > sinkChunkSize || timer.isExpired();
+            return messageQueueSize > 0 && (messageQueueSize > sinkChunkSize || timer.isExpired());
         }
     }
 }
