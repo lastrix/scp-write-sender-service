@@ -44,16 +44,19 @@ public class KafkaChangeReceiver<T> implements ChangeReceiver<T> {
                 slab.put(new TopicPartition(r.topic(), r.partition()), new OffsetAndMetadata(r.offset() + 1));
             }
         }
-        return new ChangeChunk<>(changes, slab);
+        return new ChangeChunk<>(changes, new Slab(slab));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void commit(Object slab) {
-        if (slab instanceof Map<?, ?>) {
-            consumer.commitSync((Map<TopicPartition, OffsetAndMetadata>) slab);
+        if (slab instanceof Slab) {
+            consumer.commitSync(((Slab) slab).map);
         } else {
             log.error("Slab is not Map of topic partition offset metadata: {}", slab == null ? "null" : slab.getClass().getTypeName());
         }
     }
+
+    private record Slab(Map<TopicPartition, OffsetAndMetadata> map) {
+    }
+
 }

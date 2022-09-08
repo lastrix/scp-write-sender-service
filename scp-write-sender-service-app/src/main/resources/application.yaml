@@ -11,6 +11,10 @@ spring:
     url: "${SCP_WSS_DB_URL}"
     username: "${SCP_WSS_DB_USERNAME}"
     password: "${SCP_WSS_DB_PASSWORD}"
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 1
+      connection-timeout: 10000
 # no liquibase configuration here, this work performed by write service
 
 server:

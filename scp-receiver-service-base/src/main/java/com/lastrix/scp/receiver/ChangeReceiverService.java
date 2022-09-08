@@ -43,8 +43,7 @@ public abstract class ChangeReceiverService<T> {
      * Queue for storing commit slabs, sent back to receiver
      */
     private final AtomicReference<Object> commitSlab = new AtomicReference<>(null);
-    private final Time time = Time.SYSTEM;
-    private final Timer timer = time.timer(DURATION_ONE_SECOND);
+    private final Timer timer = Time.SYSTEM.timer(DURATION_ONE_SECOND);
 
     private volatile boolean running = true;
     private final int sinkChunkSize;
@@ -131,28 +130,40 @@ public abstract class ChangeReceiverService<T> {
     private void doCommit() {
         Object slab = null;
         List<T> list = new ArrayList<>(maxSinkChunkSize);
+        int processed = 0;
         synchronized (queue) {
             while (list.size() < sinkChunkSize && !queue.isEmpty()) {
                 ChangeChunk<T> chunk = queue.poll();
                 for (T c : chunk.changes()) {
+                    // there is no need to commit same messages
+                    // again, so we skip them and reduce our
+                    // storage strain significantly
                     if (idSet.add(idOf(c))) list.add(c);
                 }
                 slab = chunk.slab();
+                // because there is no way to understand
+                // how many messages we may process when
+                // queue registration occurs, we should
+                // do it here, that is why we are not
+                // using list.size() later
+                processed += chunk.changes().size();
             }
         }
-        if (list.isEmpty()) {
-            LockSupport.unpark(receiverThread);
-        } else {
-            sink.commit(list);
-            commitSlab.set(slab);
-            messageQueueSize -= list.size();
+        sink.commit(list);
+        commitSlab.set(slab);
+        synchronized (queue) {
+            messageQueueSize -= processed;
         }
         timer.updateAndReset(DURATION_ONE_SECOND.toMillis());
     }
 
     private boolean shouldCommit() {
         synchronized (queue) {
-            return messageQueueSize > 0 && (messageQueueSize > sinkChunkSize || timer.isExpired());
+            if (messageQueueSize == 0) {
+                LockSupport.unpark(receiverThread);
+                return false;
+            }
+            return (messageQueueSize > sinkChunkSize || timer.isExpired());
         }
     }
 }
