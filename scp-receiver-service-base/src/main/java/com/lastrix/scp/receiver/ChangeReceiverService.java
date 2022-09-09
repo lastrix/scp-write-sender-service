@@ -21,7 +21,6 @@ public abstract class ChangeReceiverService<T> {
     public static final long DURATION_SINK_WAIT = Duration.ofMillis(1000).toNanos();
     public static final Duration RECEIVE_TIMEOUT = Duration.ofSeconds(1);
     public static final Duration DURATION_ONE_SECOND = Duration.ofSeconds(1);
-    public static final long ONE_SECOND_IN_NANOS = DURATION_ONE_SECOND.toNanos();
 
     private final Set<Object> idSet = Collections.newSetFromMap(new LinkedHashMap<>(ID_SET_MAX_SIZE + 1) {
         @Override
