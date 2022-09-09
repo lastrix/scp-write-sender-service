@@ -95,21 +95,24 @@ public abstract class ChangeSenderService<T> {
         while (running) {
             try {
                 commit();
-                if (running && (shouldNotFetch() || !fetch())) {
-                    LockSupport.parkNanos(sleepTime);
+                int i = 10;
+                // try fetching 10 times if possible, we must commit afterwards
+                while (running && i > 0 && shouldFetch() && fetch()) {
+                    i--;
                 }
+                if (i == 10) LockSupport.parkNanos(sleepTime);
             } catch (Throwable e) {
                 log.error("Failed to process", e);
-                LockSupport.parkNanos(Duration.ofSeconds(1).toNanos());
+                waitOnError();
             }
         }
     }
 
-    private boolean shouldNotFetch() {
+    private boolean shouldFetch() {
         // start fetching only if we reach certain
         // margin in our buffers
         // we should not strain our database too often
-        return fetchCount >= MAX_FETCH_HALF;
+        return fetchCount <= MAX_FETCH_HALF;
     }
 
     private void notifyFetcher() {
@@ -167,6 +170,14 @@ public abstract class ChangeSenderService<T> {
         return l;
     }
 
+    private void waitOnError() {
+        try {
+            Thread.sleep(Duration.ofSeconds(15).toMillis());
+        } catch (InterruptedException ignored) {
+            // do nothing
+        }
+    }
+
     private final class WorkerContext {
         /**
          * This is our topic identifier
@@ -199,7 +210,10 @@ public abstract class ChangeSenderService<T> {
                     _stopped = false;
                 }
             } catch (Throwable e) {
-                log.error("Unable to process changes", e);
+                log.error("Unable to send messages", e);
+                // this would block out fork join pool thread from processing further
+                // in case of error it is okay
+                waitOnError();
             } finally {
                 stopped = _stopped;
             }

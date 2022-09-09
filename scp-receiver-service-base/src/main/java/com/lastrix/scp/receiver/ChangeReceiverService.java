@@ -18,10 +18,10 @@ public abstract class ChangeReceiverService<T> {
      * duplicate messages registered in message queues
      */
     private static final int ID_SET_MAX_SIZE = 65535;
-    public static final long NO_RECEIVE_WAIT_DURATION = Duration.ofMillis(1000).toNanos();
-    public static final Duration RECEIVE_TIMEOUT = Duration.ofSeconds(5);
+    public static final long DURATION_SINK_WAIT = Duration.ofMillis(1000).toNanos();
+    public static final Duration RECEIVE_TIMEOUT = Duration.ofSeconds(1);
     public static final Duration DURATION_ONE_SECOND = Duration.ofSeconds(1);
-    public static final long ONE_SECOND = DURATION_ONE_SECOND.toNanos();
+    public static final long ONE_SECOND_IN_NANOS = DURATION_ONE_SECOND.toNanos();
 
     private final Set<Object> idSet = Collections.newSetFromMap(new LinkedHashMap<>(ID_SET_MAX_SIZE + 1) {
         @Override
@@ -77,11 +77,15 @@ public abstract class ChangeReceiverService<T> {
         while (running) {
             try {
                 commitReceive();
-                if (shouldReceive()) doReceiveUnsafe();
-                else LockSupport.parkNanos(NO_RECEIVE_WAIT_DURATION);
+                int i = 10;
+                while (running && i > 0 && shouldReceive() && doReceiveUnsafe()) {
+                    i--;
+                }
+                // if no receive occured
+                if (i == 10) LockSupport.parkNanos(DURATION_SINK_WAIT);
             } catch (Throwable e) {
                 log.error("Failed to process", e);
-                LockSupport.parkNanos(ONE_SECOND);
+                waitOnError();
             }
         }
     }
@@ -92,7 +96,7 @@ public abstract class ChangeReceiverService<T> {
         }
     }
 
-    private void doReceiveUnsafe() {
+    private boolean doReceiveUnsafe() {
         ChangeChunk<T> chunk = receiver.receive(receiveBufferSize, RECEIVE_TIMEOUT);
         // we double-check running here to prevent further work
         if (running && !chunk.isEmpty()) {
@@ -101,7 +105,9 @@ public abstract class ChangeReceiverService<T> {
                 messageQueueSize += chunk.changes().size();
                 if (messageQueueSize > sinkChunkSize) LockSupport.unpark(sinkThread);
             }
+            return true;
         }
+        return false;
     }
 
     private void commitReceive() {
@@ -118,11 +124,14 @@ public abstract class ChangeReceiverService<T> {
         while (running) {
             try {
                 timer.update();
-                if (shouldCommit()) doCommit();
-                LockSupport.parkNanos(NO_RECEIVE_WAIT_DURATION);
+                while (shouldCommit()) {
+                    doCommit();
+                    timer.update();
+                }
+                LockSupport.parkNanos(DURATION_SINK_WAIT);
             } catch (Throwable e) {
                 log.error("Failed to process", e);
-                LockSupport.parkNanos(ONE_SECOND);
+                waitOnError();
             }
         }
     }
@@ -140,6 +149,8 @@ public abstract class ChangeReceiverService<T> {
                     // storage strain significantly
                     if (idSet.add(idOf(c))) list.add(c);
                 }
+                // when update is done we should send this object
+                // back to receiver in order to commit state
                 slab = chunk.slab();
                 // because there is no way to understand
                 // how many messages we may process when
@@ -160,10 +171,22 @@ public abstract class ChangeReceiverService<T> {
     private boolean shouldCommit() {
         synchronized (queue) {
             if (messageQueueSize == 0) {
+                // we must notify receiver thread to
+                // start fetching again, it may be asleep
                 LockSupport.unpark(receiverThread);
                 return false;
             }
             return (messageQueueSize > sinkChunkSize || timer.isExpired());
+        }
+    }
+
+    private void waitOnError() {
+        try {
+            // wait 15 seconds if any error present,
+            // so we won't spam our log too much
+            Thread.sleep(Duration.ofSeconds(15).toMillis());
+        } catch (InterruptedException ignored) {
+            // do nothing
         }
     }
 }

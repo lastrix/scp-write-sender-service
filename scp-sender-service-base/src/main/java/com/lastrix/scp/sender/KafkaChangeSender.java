@@ -2,6 +2,7 @@ package com.lastrix.scp.sender;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -30,12 +31,20 @@ public class KafkaChangeSender<T> implements ChangeSender<T> {
         var topic = topicTemplate + channel;
         List<T> results = Collections.synchronizedList(new ArrayList<>(changes.size()));
         CountDownLatch latch = new CountDownLatch(changes.size());
-        for (T change : changes) {
-            kafkaTemplate.send(topic, toJson(change))
+        // we should map messages before send
+        // this way we may be sure that in case of json serialization exception
+        // no message sent to kafka
+        var list = changes.stream().map(x -> ImmutablePair.of(x, toJson(x))).toList();
+        // essentially we are trying to send as many messages as possible, this method
+        // should be called with multiple messages to work efficiently, otherwise kafka
+        // may refuse to send them right away because buffer is not full enough or not
+        // enough time passed from last send
+        for (var p : list) {
+            kafkaTemplate.send(topic, p.getValue())
                     .completable()
                     .thenApply(r -> {
                         log.trace("Wrote message to {}:{}", r.getProducerRecord().topic(), r.getProducerRecord().partition());
-                        results.add(change);
+                        results.add(p.getKey());
                         latch.countDown();
                         return true;
                     })
@@ -44,9 +53,6 @@ public class KafkaChangeSender<T> implements ChangeSender<T> {
                         return false;
                     });
         }
-        // actually this may lock thread for much longer than
-        // we would think because kafka may send messages only
-        // when certain amount of bytes could be sent to server
         awaitLatch(latch);
         return results;
     }

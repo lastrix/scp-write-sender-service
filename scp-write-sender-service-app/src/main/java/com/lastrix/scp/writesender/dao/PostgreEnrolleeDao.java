@@ -45,11 +45,21 @@ public class PostgreEnrolleeDao implements EnrolleeDao {
     @Override
     public List<EnrolleeSelect> fetch(int page) {
         return jdbcTemplate.query(
-                "SELECT user_id, session_id, spec_id, status, score, created_stamp, confirmed_stamp, canceled_stamp, ordinal " +
-                        "FROM scp_write_service.enrollee_select es " +
-                        "WHERE es.state = 0 " +
-                        "ORDER BY es.modified_stamp " +
-                        "LIMIT 128 OFFSET ?",
+                """
+                        SELECT  user_id,
+                                session_id,
+                                spec_id,
+                                status,
+                                score,
+                                created_stamp,
+                                confirmed_stamp,
+                                canceled_stamp,
+                                ordinal
+                        FROM scp_write_service.enrollee_select es
+                        WHERE es.state = 0
+                        ORDER BY es.modified_stamp
+                        LIMIT 128
+                        OFFSET ?""",
                 (rs, rowNum) -> mapToEnrolleeSelect(rs),
                 page * 128
         );

@@ -32,6 +32,8 @@ public class KafkaChangeReceiver<T> implements ChangeReceiver<T> {
         var timer = Time.SYSTEM.timer(duration);
         List<T> changes = new ArrayList<>();
         Map<TopicPartition, OffsetAndMetadata> slab = new HashMap<>();
+        // we should try to receive as many messages as possible in one go
+        // this will help us afterwards by reducing commit calls to kafka
         while (timer.notExpired() && changes.size() < maxSize) {
             timer.update();
             var rs = consumer.poll(timer.remainingMs());
@@ -41,6 +43,8 @@ public class KafkaChangeReceiver<T> implements ChangeReceiver<T> {
                 if (v != null) {
                     changes.add(v);
                 }
+                // for each message we must update our slab, that holds info
+                // about each partition offset for commit
                 slab.put(new TopicPartition(r.topic(), r.partition()), new OffsetAndMetadata(r.offset() + 1));
             }
         }
